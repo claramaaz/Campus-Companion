@@ -32,11 +32,14 @@ fun EventsScreen(
                 Text(state.message)
                 Button(onClick = onRetry) { Text("Retry") }
             }
-            is EventsUiState.Content -> LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(items = state.events, key = { it.id }) { event ->
-                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                        Text(event.title, style = MaterialTheme.typography.titleMedium)
-                        Text("${event.timeLabel} · ${event.locationLabel}")
+            is EventsUiState.Content -> Column(modifier = Modifier.fillMaxSize()) {
+                Button(onClick = onRetry) { Text("Refresh") }
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(items = state.events, key = { it.id }) { event ->
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                            Text(event.title, style = MaterialTheme.typography.titleMedium)
+                            Text("${event.timeLabel} · ${event.locationLabel}")
+                        }
                     }
                 }
             }
