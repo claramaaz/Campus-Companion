@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -27,13 +28,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,7 +46,7 @@ import com.inci.campuscompanion.data.TaskRepository
 import com.inci.campuscompanion.data.UserPreferencesRepository
 import com.inci.campuscompanion.data.dataStore
 import com.inci.campuscompanion.model.Task
-import com.inci.campuscompanion.ui.EventsScreen
+import com.inci.campuscompanion.ui.CampusNavHost
 import com.inci.campuscompanion.ui.EventsViewModel
 import com.inci.campuscompanion.ui.MainViewModel
 import com.inci.campuscompanion.ui.theme.CampusCompanionTheme
@@ -69,42 +67,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
-            val tasks by viewModel.tasks.collectAsStateWithLifecycle()
-            val eventsState by eventsViewModel.state.collectAsStateWithLifecycle()
-            var selectedTab by remember { mutableIntStateOf(0) }
 
             CampusCompanionTheme(darkTheme = isDarkMode) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(modifier = Modifier.padding(innerPadding)) {
-                        TabRow(selectedTabIndex = selectedTab) {
-                            Tab(
-                                selected = selectedTab == 0,
-                                onClick = { selectedTab = 0 },
-                                text = { Text("Tasks") }
-                            )
-                            Tab(
-                                selected = selectedTab == 1,
-                                onClick = { selectedTab = 1 },
-                                text = { Text("Events") }
-                            )
-                        }
-                        if (selectedTab == 0) {
-                            TaskScreen(
-                                isDarkMode = isDarkMode,
-                                onToggleDarkMode = { viewModel.toggleDarkMode(it) },
-                                tasks = tasks,
-                                onToggleTask = { viewModel.toggleTaskCompletion(it) },
-                                onAddTask = { title, description -> viewModel.upsertTask(title, description) },
-                                modifier = Modifier.weight(1f)
-                            )
-                        } else {
-                            EventsScreen(
-                                state = eventsState,
-                                onRetry = eventsViewModel::load,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
+                    CampusNavHost(
+                        mainViewModel = viewModel,
+                        eventsViewModel = eventsViewModel,
+                        modifier = Modifier.padding(innerPadding)
+                    )
                 }
             }
         }
@@ -118,6 +88,7 @@ fun TaskScreen(
     tasks: List<Task>,
     onToggleTask: (Task) -> Unit,
     onAddTask: (String, String) -> Unit,
+    onOpenEvents: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
@@ -139,6 +110,13 @@ fun TaskScreen(
                     checked = isDarkMode,
                     onCheckedChange = onToggleDarkMode
                 )
+            }
+
+            Button(
+                onClick = onOpenEvents,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            ) {
+                Text("Open Events")
             }
 
             HorizontalDivider()
@@ -300,7 +278,8 @@ fun TaskPreview() {
                 Task(2, "Task 2", "Description 2", true)
             ),
             onToggleTask = {},
-            onAddTask = { _, _ -> }
+            onAddTask = { _, _ -> },
+            onOpenEvents = {}
         )
     }
 }
